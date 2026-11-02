@@ -62,10 +62,14 @@ function findAnswer(question) {
   return bestScore > 0 ? best : null;
 }
 
+function getTopicById(id) {
+  
+    return TOPICS.find((t) => t.id === id) || null;
+}
 function listTopics() {
   return TOPICS.map((t) => t.title);
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { TOPICS, findAnswer, listTopics };
+  module.exports = { TOPICS, findAnswer, listTopics, getTopicById };
 }
