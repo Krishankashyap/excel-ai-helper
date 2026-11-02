@@ -3,62 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Excel AI Helper — No API Key Needed</title>
+<title>Excel AI Agent — No API Key Needed</title>
 <style>
-body{font-family:system-ui,Arial,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.5}
-input{width:100%;padding:.6rem;font-size:1rem;box-sizing:border-box}
-button{padding:.6rem 1.2rem;margin-top:.5rem;cursor:pointer}
-.card{border:1px solid #ddd;border-radius:8px;padding:1rem;margin:1rem 0}
-code{background:#f2f2f2;padding:.2rem .4rem}
-pre{background:#f2f2f2;padding:1rem;overflow:auto}
-.small{color:#555}
-.topic-btn{display:block;width:100%;text-align:left;background:#fff;border:1px solid #ddd;border-radius:8px;padding:.7rem 1rem;margin:.4rem 0;font-size:1rem;cursor:pointer}
-.topic-btn:hover{background:#f0f7ff;border-color:#7ab3e8}
-.topic-btn:active{background:#dceeff}
+body{font-family:system-ui,Arial,sans-serif;max-width:760px;margin:0 auto;padding:0 1rem 1rem;line-height:1.5;background:#f7f7f8}
+h1{margin:1rem 0 .2rem}
+.small{color:#555;font-size:.9rem}
+#chat{display:flex;flex-direction:column;gap:.7rem;margin:1rem 0}
+.msg{max-width:85%;padding:.8rem 1rem;border-radius:14px}
+.msg.user{align-self:flex-end;background:#0b7a4b;color:#fff}
+.msg.agent{align-self:flex-start;background:#fff;border:1px solid #ddd}
+.msg pre{background:#f2f2f2;padding:.8rem;overflow:auto;border-radius:6px}
+.topics{display:flex;flex-wrap:wrap;gap:.4rem;margin:.5rem 0 1rem}
+.topic-chip{background:#fff;border:1px solid #ccc;border-radius:999px;padding:.4rem .9rem;font-size:.9rem;cursor:pointer}
+.topic-chip:hover{background:#e8f4ee;border-color:#0b7a4b}
+#composer{display:flex;gap:.5rem;position:sticky;bottom:0;background:#f7f7f8;padding:.5rem 0}
+#q{flex:1;padding:.7rem;font-size:1rem;border:1px solid #ccc;border-radius:8px;box-sizing:border-box}
+#send{padding:.7rem 1.2rem;font-size:1rem;cursor:pointer;background:#0b7a4b;color:#fff;border:0;border-radius:8px}
+.dots span{display:inline-block;width:8px;height:8px;margin-right:4px;border-radius:50%;background:#888;animation:bounce 1.2s infinite}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
 </style>
 </head>
 <body>
-<h1>Excel AI Helper 🤖</h1>
-<p><strong>Bina kisi API key ke, bina likhe.</strong> Neeche kisi bhi topic par click karo — uska formula + DEO example turant khul jayega. Likhna sirf tab jab tum apne shabdon me sawaal poochna chaho.</p>
-<p class="small">Saaf baat: ye ek rule-based helper hai, koi bada language model nahi. Ye tumhare sawaal ke shabdon ko apne knowledge base se milata hai. Isliye isme na koi key chahiye, na server, na internet — sab kuch tumhare browser me hi chalta hai, koi data bahar nahi jaata.</p>
-<h2>Saare topics — click karo, jawab kholo 👇</h2>
-<div id="topics"></div>
-<hr>
-<p><strong>Ya apna sawaal likho:</strong></p>
+<h1>Excel AI Agent 🤖</h1>
+<p class="small">Bina kisi API key ke, bina server ke. Saaf baat: ye ek rule-based helper hai, koi bada language model nahi — sab kuch tumhare browser me hi chalta hai, koi data bahar nahi jaata.</p>
+<p><strong>Topic par click karo, ya neeche sawaal likho 👇</strong></p>
+<div class="topics" id="topics"></div>
+<div id="chat"></div>
+<div id="composer">
 <input id="q" placeholder="Sawaal likho... jaise: Present kitne hain kaise ginu?">
-<br>
-<button onclick="ask()">Jawab do</button>
-<div id="answer"></div>
+<button id="send" onclick="ask()">Bhejo</button>
+</div>
 <script src="helper.js"></script>
 <script>
-function showCard(t){
-  const box = document.getElementById("answer");
-  box.innerHTML = "<div class='card'><h2>" + t.title + "</h2><p><strong>Formula / Shortcut:</strong></p><pre>" + t.formula + "</pre><p>" + t.explanation + "</p><p><strong>" + t.example + "</strong></p></div>";
-  box.scrollIntoView({behavior: "smooth", block: "start"});
+const chat = document.getElementById("chat");
+function addMsg(text, who){
+  const d = document.createElement("div");
+  d.className = "msg " + who;
+  d.innerHTML = text;
+  chat.appendChild(d);
+  d.scrollIntoView({behavior: "smooth", block: "end"});
+  return d;
+}
+function answerHtml(t){
+  return "<strong>" + t.title + "</strong><p><strong>Formula / Shortcut:</strong></p><pre>" + t.formula + "</pre><p>" + t.explanation + "</p><p><strong>" + t.example + "</strong></p>";
+}
+function replyWithDots(topicOrNull, fallbackText){
+  const dots = addMsg("<span class='dots'><span></span><span></span><span></span></span>", "agent");
+  setTimeout(function(){
+    if (topicOrNull) {
+      dots.innerHTML = answerHtml(topicOrNull);
+    } else {
+      dots.innerHTML = fallbackText;
+    }
+    dots.scrollIntoView({behavior: "smooth", block: "end"});
+  }, 800);
 }
 function showTopic(id){
   const t = getTopicById(id);
-  if (t) showCard(t);
+  if (!t) return;
+  addMsg(t.title, "user");
+  replyWithDots(t, "");
 }
 function ask(){
-  const q = document.getElementById("q").value;
-  const box = document.getElementById("answer");
+  const input = document.getElementById("q");
+  const q = input.value.trim();
+  if (!q) return;
+  addMsg(q, "user");
+  input.value = "";
   const t = findAnswer(q);
   if (!t) {
-    box.innerHTML = "<div class='card'><h2>Samajh nahi aaya</h2><p>Is sawaal ka jawab mere knowledge base me nahi mila. Upar kisi topic par click kar lo, ya sawaal ko doosre shabdon me likho — jaise 'total', 'average', 'duplicate', 'pivot', 'filter', 'vlookup'.</p></div>";
-    box.scrollIntoView({behavior: "smooth", block: "start"});
+    replyWithDots(null, "<strong>Samajh nahi aaya</strong><p>Is sawaal ka jawab mere knowledge base me nahi mila. Upar kisi topic par click kar lo, ya sawaal ko doosre shabdon me likho — jaise 'total', 'average', 'duplicate', 'pivot', 'filter', 'vlookup'.</p>");
     return;
   }
-  showCard(t);
+  replyWithDots(t, "");
 }
-function renderTopics(){
-  const wrap = document.getElementById("topics");
-  wrap.innerHTML = TOPICS.map(function(t){
-    return "<button class='topic-btn' onclick=\"showTopic('" + t.id + "')\">" + t.title + " ›</button>";
-  }).join("");
-}
-renderTopics();
+document.getElementById("topics").innerHTML = TOPICS.map(function(t){
+  return "<button class='topic-chip' onclick=\"showTopic('" + t.id + "')\">" + t.title + "</button>";
+}).join("");
 document.getElementById("q").addEventListener("keydown", function(e){ if(e.key === "Enter") ask(); });
+addMsg("<strong>Namaste! Main tumhara Excel AI Agent hoon.</strong><p>Kisi topic par click karo, ya neeche apna sawaal likho — SUM, VLOOKUP, Pivot, Duplicate, sab ka formula + DEO example dunga.</p>", "agent");
 </script>
 </body>
 </html>
