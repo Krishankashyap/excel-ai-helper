@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Excel AI Helper — No API Key Needed</title>
+<style>
+body{font-family:system-ui,Arial,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.5}
+input{width:100%;padding:.6rem;font-size:1rem;box-sizing:border-box}
+button{padding:.6rem 1.2rem;margin-top:.5rem;cursor:pointer}
+.card{border:1px solid #ddd;border-radius:8px;padding:1rem;margin:1rem 0}
+code{background:#f2f2f2;padding:.2rem .4rem}
+pre{background:#f2f2f2;padding:1rem;overflow:auto}
+.small{color:#555}
+</style>
+</head>
+<body>
+<h1>Excel AI Helper 🤖</h1>
+<p><strong>Bina kisi API key ke.</strong> Apna sawaal Hindi, Hinglish ya English me likho — jaise "total kaise nikale", "duplicate hatane hain", "VLOOKUP kaise kare" — aur system sahi formula + DEO example ke saath jawab dega.</p>
+<p class="small">Saaf baat: ye ek rule-based helper hai, koi bada language model nahi. Ye tumhare sawaal ke shabdon ko apne knowledge base se milata hai. Isliye isme na koi key chahiye, na server, na internet — sab kuch tumhare browser me hi chalta hai, koi data bahar nahi jaata.</p>
+
+<input id="q" placeholder="Sawaal likho... jaise: Present kitne hain kaise ginu?">
+<br>
+<button onclick="ask()">Jawab do</button>
+<button onclick="showAll()">Saare topics dikhao</button>
+
+<div id="answer"></div>
+
+<script src="helper.js"></script>
+<script>
+function ask(){
+  const q = document.getElementById("q").value;
+  const box = document.getElementById("answer");
+  const t = findAnswer(q);
+  if (!t) {
+    box.innerHTML = "<div class='card'><h2>Samajh nahi aaya</h2><p>Is sawaal ka jawab mere knowledge base me nahi mila. Neeche 'Saare topics dikhao' dabakar koi topic chun lo, ya sawaal ko doosre shabdon me likho — jaise 'total', 'average', 'duplicate', 'pivot', 'filter', 'vlookup'.</p></div>";
+    return;
+  }
+  box.innerHTML = "<div class='card'><h2>" + t.title + "</h2><p><strong>Formula / Shortcut:</strong></p><pre>" + t.formula + "</pre><p>" + t.explanation + "</p><p><strong>" + t.example + "</strong></p></div>";
+}
+function showAll(){
+  const box = document.getElementById("answer");
+  box.innerHTML = "<div class='card'><h2>Saare topics</h2><ul>" + listTopics().map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ul><p>Inme se kisi bhi topic ka naam sawaal me likh do, jawab mil jayega.</p></div>";
+}
+document.getElementById("q").addEventListener("keydown", function(e){ if(e.key === "Enter") ask(); });
+</script>
+</body>
+</html>
