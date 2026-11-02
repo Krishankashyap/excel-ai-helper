@@ -12,36 +12,52 @@ button{padding:.6rem 1.2rem;margin-top:.5rem;cursor:pointer}
 code{background:#f2f2f2;padding:.2rem .4rem}
 pre{background:#f2f2f2;padding:1rem;overflow:auto}
 .small{color:#555}
+.topic-btn{display:block;width:100%;text-align:left;background:#fff;border:1px solid #ddd;border-radius:8px;padding:.7rem 1rem;margin:.4rem 0;font-size:1rem;cursor:pointer}
+.topic-btn:hover{background:#f0f7ff;border-color:#7ab3e8}
+.topic-btn:active{background:#dceeff}
 </style>
 </head>
 <body>
 <h1>Excel AI Helper 🤖</h1>
-<p><strong>Bina kisi API key ke.</strong> Apna sawaal Hindi, Hinglish ya English me likho — jaise "total kaise nikale", "duplicate hatane hain", "VLOOKUP kaise kare" — aur system sahi formula + DEO example ke saath jawab dega.</p>
+<p><strong>Bina kisi API key ke, bina likhe.</strong> Neeche kisi bhi topic par click karo — uska formula + DEO example turant khul jayega. Likhna sirf tab jab tum apne shabdon me sawaal poochna chaho.</p>
 <p class="small">Saaf baat: ye ek rule-based helper hai, koi bada language model nahi. Ye tumhare sawaal ke shabdon ko apne knowledge base se milata hai. Isliye isme na koi key chahiye, na server, na internet — sab kuch tumhare browser me hi chalta hai, koi data bahar nahi jaata.</p>
-
+<h2>Saare topics — click karo, jawab kholo 👇</h2>
+<div id="topics"></div>
+<hr>
+<p><strong>Ya apna sawaal likho:</strong></p>
 <input id="q" placeholder="Sawaal likho... jaise: Present kitne hain kaise ginu?">
 <br>
 <button onclick="ask()">Jawab do</button>
-<button onclick="showAll()">Saare topics dikhao</button>
-
 <div id="answer"></div>
-
 <script src="helper.js"></script>
 <script>
+function showCard(t){
+  const box = document.getElementById("answer");
+  box.innerHTML = "<div class='card'><h2>" + t.title + "</h2><p><strong>Formula / Shortcut:</strong></p><pre>" + t.formula + "</pre><p>" + t.explanation + "</p><p><strong>" + t.example + "</strong></p></div>";
+  box.scrollIntoView({behavior: "smooth", block: "start"});
+}
+function showTopic(id){
+  const t = getTopicById(id);
+  if (t) showCard(t);
+}
 function ask(){
   const q = document.getElementById("q").value;
   const box = document.getElementById("answer");
   const t = findAnswer(q);
   if (!t) {
-    box.innerHTML = "<div class='card'><h2>Samajh nahi aaya</h2><p>Is sawaal ka jawab mere knowledge base me nahi mila. Neeche 'Saare topics dikhao' dabakar koi topic chun lo, ya sawaal ko doosre shabdon me likho — jaise 'total', 'average', 'duplicate', 'pivot', 'filter', 'vlookup'.</p></div>";
+    box.innerHTML = "<div class='card'><h2>Samajh nahi aaya</h2><p>Is sawaal ka jawab mere knowledge base me nahi mila. Upar kisi topic par click kar lo, ya sawaal ko doosre shabdon me likho — jaise 'total', 'average', 'duplicate', 'pivot', 'filter', 'vlookup'.</p></div>";
+    box.scrollIntoView({behavior: "smooth", block: "start"});
     return;
   }
-  box.innerHTML = "<div class='card'><h2>" + t.title + "</h2><p><strong>Formula / Shortcut:</strong></p><pre>" + t.formula + "</pre><p>" + t.explanation + "</p><p><strong>" + t.example + "</strong></p></div>";
+  showCard(t);
 }
-function showAll(){
-  const box = document.getElementById("answer");
-  box.innerHTML = "<div class='card'><h2>Saare topics</h2><ul>" + listTopics().map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ul><p>Inme se kisi bhi topic ka naam sawaal me likh do, jawab mil jayega.</p></div>";
+function renderTopics(){
+  const wrap = document.getElementById("topics");
+  wrap.innerHTML = TOPICS.map(function(t){
+    return "<button class='topic-btn' onclick=\"showTopic('" + t.id + "')\">" + t.title + " ›</button>";
+  }).join("");
 }
+renderTopics();
 document.getElementById("q").addEventListener("keydown", function(e){ if(e.key === "Enter") ask(); });
 </script>
 </body>
